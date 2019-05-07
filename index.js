@@ -8,18 +8,22 @@ const session = require('express-session');
 const bodyParser = require('body-parser');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
+const InstagramStrategy = require('passport-instagram');
+const shortid = require('shortid');
 //
 
 const SessionStore = require('./SessionStore');
 
 const PORT = 1337;
+const INSTAGRAM_CLIENT_ID = ''; // TODO
+const INSTAGRAM_CLIENT_SECRET = ''; // TODO
 
 
 const adapter = new FileSync('db.json');
 const db = low(adapter);
 
 db.defaults({
-  users: [/* { id, email, password} */],
+  users: [/* { id, email, password, instagramId?, instagramAccessToken?, instagramRefreshToken? } */],
   sessions: [],
   images: [],
   coupons: [],
@@ -61,6 +65,40 @@ passport.use(new LocalStrategy(
     if (password !== user.password) {
       done(null, false, { message: 'Wrong password.' });
       return;
+    }
+
+    done(null, user);
+  },
+));
+
+passport.use(new InstagramStrategy(
+  {
+    clientId: INSTAGRAM_CLIENT_ID,
+    clientSecret: INSTAGRAM_CLIENT_SECRET,
+    callbackURL: `http://127.0.0.1:${PORT}/auth/instagram/callback`,
+  },
+  (accessToken, refreshToken, profile, done) => {
+    //
+    debugger;
+    console.log(JSON.stringify({ accessToken, refreshToken, profile }));
+
+    const Users = db.get('users');
+    let user = Users
+      .find({ instagramId: profile.id })
+      .value();
+
+    if (!user) {
+      // create
+
+      user = Users.push({
+        id: shortid.generate(),
+        username: profile.username,
+        // TODO password???
+        instagramAccessToken: accessToken,
+        instagramRefreshToken: refreshToken,
+      }).write();
+    } else {
+      // update
     }
 
     done(null, user);
