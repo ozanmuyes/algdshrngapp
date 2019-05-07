@@ -1,0 +1,11 @@
+<form action="/login" method="POST">
+  <input type="hidden" name="_csrf" value="{{csrfToken}}">
+
+  <label for="uname"><b>Username</b></label>
+  <input type="text" placeholder="Enter Username" name="uname" value="john.doe" required>
+
+  <label for="psw"><b>Password</b></label>
+  <input type="password" placeholder="Enter Password" name="psw" value="john@does.co" required>
+
+  <button type="submit">Giriş</button>
+</form>
